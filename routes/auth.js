@@ -2,7 +2,7 @@ const express = require('express')
 const router = express.Router()
 const { verifyLoginAndPassword } = require('../logic/auth')
 const { createUser } = require('../logic/db')
-const { AppResponse } = require('../logic/objects')
+const { sendResponse } = require('../logic/http')
 
 router.post('/register', async function(req, res, next) {
   // Verify login and password
@@ -11,7 +11,7 @@ router.post('/register', async function(req, res, next) {
   try {
     verifyLoginAndPassword(login, password)
   } catch (errors) {
-    return res.send(new AppResponse('error', {errors}))
+    return sendResponse(res, )
   }
 
   // Create user in database
@@ -20,12 +20,11 @@ router.post('/register', async function(req, res, next) {
     newUser = await createUser(login, password)
   } catch (err) {
     console.error(err)
-    return res.send(new AppResponse('error', 'Извините, мы не смогли подключиться к нашей базе данных', err.toString(), err))
+    return sendResponse(res, {status: 'error', userMessage: 'Извините, мы не смогли подключиться к нашей базе данных', message: err})
   }
 
   // Send response with session token
-  return res.send(new AppResponse('ok', 'Регистрация прошла успешно ✔', 'Регистрация успешна'))
-  return res.send({status: 'ok', userMessage: 'Регистрация прошла успешно ✔', message: 'Регистрация успешна', user: newUser})
+  return sendResponse(res, {status: 'ok', userMessage: 'Регистрация прошла успешно ✔', message: 'Регистрация успешна', user: newUser})
 })
 
 module.exports = router
