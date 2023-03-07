@@ -2,7 +2,7 @@ const express = require('express')
 const router = express.Router()
 const { verifyLoginAndPassword } = require('../logic/auth')
 const { createUser } = require('../logic/db')
-const { sendResponse } = require('../logic/http')
+import { sendResponse } from "../logic/http"
 
 router.post('/register', async function(req, res, next) {
   // Verify login and password
@@ -11,7 +11,7 @@ router.post('/register', async function(req, res, next) {
   try {
     verifyLoginAndPassword(login, password)
   } catch (errors) {
-    return sendResponse(res, )
+    return sendResponse(res, {status: 'error', userMessage: {errors}})
   }
 
   // Create user in database
@@ -28,3 +28,4 @@ router.post('/register', async function(req, res, next) {
 })
 
 module.exports = router
+export {}

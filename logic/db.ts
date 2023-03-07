@@ -1,11 +1,18 @@
 const { MongoClient } = require('mongodb')
 
+// TODO: write proper types ofc
+type User = {
+  login: any,
+  password: any,
+  _id?: any
+}
+
 module.exports.createUser = async function(login, password) {
   const { db, client } = getDb()
 
   const users = db.collection('users')
 
-  const newUser = {
+  const newUser: User = {
     login,
     password,
   }

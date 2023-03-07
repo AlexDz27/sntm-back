@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "outDir": "./build",
+    "target": "ES6",
+    "noEmitOnError": true,
+    "module": "CommonJS",
+    "esModuleInterop": true
+  },
+  "include": ["./**/*"],
+  "exclude": ["./build/**/*"]
+}
