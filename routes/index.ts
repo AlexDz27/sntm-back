@@ -1,7 +1,9 @@
+import { NextFunction as Next, Request, Response } from 'express'
+
 const express = require('express')
 const router = express.Router()
 
-router.get('/', function(req, res, next) {
+router.get('/', function(req: Request, res: Response, next: Next) {
   res.send('respond with a resource (now TS)!!!')
 })
 

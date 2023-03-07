@@ -3,8 +3,9 @@ const router = express.Router()
 const { verifyLoginAndPassword } = require('../logic/auth')
 const { createUser } = require('../logic/db')
 import { sendResponse } from "../logic/http"
+import { NextFunction as Next, Request, Response } from 'express'
 
-router.post('/register', async function(req, res, next) {
+router.post('/register', async function(req: Request, res: Response, next: Next) {
   // Verify login and password
   const login = req.body.login?.trim()
   const password = req.body.password

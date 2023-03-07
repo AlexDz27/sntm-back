@@ -4,7 +4,9 @@
     "target": "ES6",
     "noEmitOnError": true,
     "module": "CommonJS",
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "allowJs": true,
+    "strict": true,
   },
   "include": ["./**/*"],
   "exclude": ["./build/**/*"]

@@ -1,13 +1,12 @@
 const { MongoClient } = require('mongodb')
 
-// TODO: write proper types ofc
-type User = {
-  login: any,
-  password: any,
-  _id?: any
+interface User {
+  login: string
+  password: string
+  _id: null | string
 }
 
-module.exports.createUser = async function(login, password) {
+module.exports.createUser = async function(login: string, password: string) {
   const { db, client } = getDb()
 
   const users = db.collection('users')
@@ -15,6 +14,7 @@ module.exports.createUser = async function(login, password) {
   const newUser: User = {
     login,
     password,
+    _id: null
   }
 
   let insertResult
@@ -26,7 +26,7 @@ module.exports.createUser = async function(login, password) {
 
   console.log(`A document was inserted with the _id: ${insertResult.insertedId}`)
 
-  newUser._id = insertResult.insertedId
+  newUser._id = String(insertResult.insertedId)
 
   return newUser
 }
