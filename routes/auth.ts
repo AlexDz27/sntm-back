@@ -1,7 +1,7 @@
 const express = require('express')
 const router = express.Router()
-const { verifyLoginAndPassword } = require('../logic/auth')
 const { createUser } = require('../logic/db')
+import { verifyLoginAndPassword } from "../logic/auth"
 import { sendResponse } from "../logic/http"
 import { NextFunction as Next, Request, Response } from 'express'
 

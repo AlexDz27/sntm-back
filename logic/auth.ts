@@ -1,7 +1,10 @@
-module.exports.verifyLoginAndPassword = function(
+/**
+ * @throws {object} Errors object
+ */
+export function verifyLoginAndPassword(
   login: null | undefined | string,
   password: null | undefined | string
-  ) {
+  ): void {
     const errors: {login: any[], password: any[]} = {login: [], password: []}
     if (!login) errors.login.push('Логин должен быть заполнен')
     if (!password) errors.password.push('Пароль должен быть заполнен')
@@ -18,7 +21,7 @@ module.exports.verifyLoginAndPassword = function(
     }
 }
 
-function isPasswordStrong(password: string) {
+function isPasswordStrong(password: string): boolean {
   const regexp = /^(?=.*\d)(?=.*[+!@#$%^&*_-])(?=.*[a-z])(?=.*[A-Z]).{8,}$/
   return regexp.test(password)
 }
