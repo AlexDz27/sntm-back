@@ -1,3 +1,9 @@
+import { Request } from 'express'
+import { deviceDetector } from '../app'
+import { hashPassword } from './auth'
+import { getSixtyDaysFromToday } from './date'
+import { createSessionToken } from './sessionToken'
+
 const { MongoClient } = require('mongodb')
 
 interface User {
@@ -6,37 +12,52 @@ interface User {
   _id: null | string
 }
 
-export async function createUser(login: string, password: string) {
+export async function createUser(login: string, password: string, req: Request) {
+  // Create new user and new session token in db
   const { db, client } = getDb()
   const users = db.collection('users')
+  const sessionTokens = db.collection('sessionTokens')
 
+  let hashedPassword = await hashPassword(password)
   const newUser: User = {
     login,
-    password,
+    password: hashedPassword,
     _id: null
   }
+  const newSessionToken = {
+    value: createSessionToken(),
+    userId: null,
+    ipAddress: req.socket.remoteAddress,
+    device: deviceDetector.detect(req.get('User-Agent') as string),
+    createdAt: String(new Date()),
+    expiresAt: String(getSixtyDaysFromToday())
+  }
 
-  let insertResult
+  let insertResultNewUser
+  let insertResultNewSessionToken
   try {
-    insertResult = await users.insertOne(newUser)
+    insertResultNewUser = await users.insertOne(newUser)
+
+    newSessionToken.userId = insertResultNewUser.insertedId
+    insertResultNewSessionToken = await sessionTokens.insertOne(newSessionToken)
   } finally {
     await client.close()
   }
+  console.log(`A new user was inserted with the _id: ${insertResultNewUser.insertedId}`)
+  console.log(`A new session token was inserted with the _id: ${insertResultNewSessionToken.insertedId}`)
 
-  console.log(`A document was inserted with the _id: ${insertResult.insertedId}`)
+  newUser._id = String(insertResultNewUser.insertedId)
 
-  newUser._id = String(insertResult.insertedId)
-
-  return newUser
+  return {user: newUser, newSessionToken: newSessionToken.value}
 }
 
-export async function getUser(login: string, password: string) {
+export async function getUser(login: string) {
   const { db, client } = getDb()
   const users = db.collection('users')
 
   let user
   try {
-    user = await users.findOne({login, password})
+    user = await users.findOne({login})
   } finally {
     await client.close();
   }

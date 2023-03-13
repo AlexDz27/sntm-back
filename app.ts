@@ -1,8 +1,10 @@
+require('dotenv').config()
 const express = require('express')
 const path = require('path')
 const cookieParser = require('cookie-parser')
 const logger = require('morgan')
 import { Request, Response, NextFunction as Next } from 'express'
+import DeviceDetector from 'node-device-detector'
 
 const indexRouter = require('./routes/index')
 const authRouter = require('./routes/auth')
@@ -24,4 +26,9 @@ app.use((req: Request, res: Response, next: Next) => {
 app.use('/', indexRouter)
 app.use('/', authRouter)
 
+export const deviceDetector = new DeviceDetector({
+  clientIndexes: true,
+  deviceIndexes: true,
+  deviceAliasCode: false,
+});
 module.exports = app

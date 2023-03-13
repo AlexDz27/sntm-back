@@ -3,8 +3,8 @@ const router = express.Router()
 import { NextFunction as Next, Request, Response } from 'express'
 import { HTTP_BAD_CREDENTIALS, HTTP_BAD_REQUEST, HTTP_SERVER_ERROR } from '../logic/constants'
 import { createUser } from '../logic/db'
-import { checkLoginAndPasswordCorrectFormat, getLoggedInUser } from '../logic/auth'
-import { sendResponse } from '../logic/http'
+import { checkLoginAndPasswordCorrectFormat, userAlreadyExists, getLoggedInUser } from '../logic/auth'
+import { AppError, sendResponse } from '../logic/appAndHttp'
 
 router.post('/register', async function(req: Request, res: Response, next: Next) {
   // Check if format of login and password is correct
@@ -17,13 +17,23 @@ router.post('/register', async function(req: Request, res: Response, next: Next)
     return sendResponse(res, {status: 'error', userMessage: {errors}})
   }
 
-  // Create user in database
+  // Check if user already exists
+  if (await userAlreadyExists(login)) {
+    res.status(HTTP_BAD_CREDENTIALS)
+    return sendResponse(res, {status: 'error', userMessage: `Извините, но пользователь с логином ${login} уже существует. Попробуйте использовать другой логин.`})
+  }
+
+  // All good! Create user in database
   let newUser
   try {
-    newUser = await createUser(login, password)
+    newUser = await createUser(login, password, req)
   } catch (err) {
     console.error(err)
     res.status(HTTP_SERVER_ERROR)
+    if (err instanceof AppError) {
+      return sendResponse(res, {status: 'error', userMessage: err.userMessage, message: err.message})      
+    }
+
     return sendResponse(res, {status: 'error', userMessage: 'Извините, мы не смогли подключиться к нашей базе данных', message: err})
   }
 
@@ -33,7 +43,7 @@ router.post('/register', async function(req: Request, res: Response, next: Next)
     status: 'ok',
     userMessage: 'Регистрация прошла успешно ✔',
     message: 'Регистрация успешна',
-    user: newUser,
+    user: {login: newUser.user.login, _id: newUser.user._id},
   })
 })
 

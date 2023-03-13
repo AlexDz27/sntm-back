@@ -1,4 +1,56 @@
-import { getUser } from "./db"
+import * as argon2 from 'argon2'
+import { AppError } from './appAndHttp'
+import { ARGON2_ERROR_MESSAGE, GENERIC_SERVER_ERROR_USER_MESSAGE } from './constants'
+import { getUser } from './db'
+
+/**
+ * @throws {object} Errors object
+ */
+export async function getLoggedInUser(
+  login: null | undefined | string,
+  password: null | undefined | string
+): Promise<void> {
+  const errors: {login: any[], password: any[], userNotFound: null | string} = {login: [], password: [], userNotFound: null}
+  // Check if login and password are filled
+  if (!login) errors.login.push('Логин должен быть заполнен')
+  if (!password) errors.password.push('Пароль должен быть заполнен')
+  if (errors.login.length > 0 || errors.password.length > 0) {
+    console.error({login, password, errors})
+    throw errors
+  }
+  password = password as string
+  login = login as string
+
+  // Verify password
+  // // Get user by login. If not found, send error 'no user with such login/password'
+  const userTryingLogin = await getUser(login)
+  if (!userTryingLogin) {
+    errors.userNotFound = 'Извините, но пользователя с таким логином и/или паролем не существует'
+    throw errors
+  }
+  // // Actually verify hashed password. If no match, send error 'no user with such login/password'
+  try {
+    if (!await argon2.verify(userTryingLogin.password, password)) {
+      errors.password.push('Извините, но пользователя с таким логином и/или паролем не существует')
+    }
+  } catch (err) {
+    throw new AppError(err, GENERIC_SERVER_ERROR_USER_MESSAGE, ARGON2_ERROR_MESSAGE)
+  }
+  if (errors.password.length > 0) throw errors
+
+  // Else we return the loggedInUser :)
+  const loggedInUser = userTryingLogin
+
+  return loggedInUser
+}
+
+export async function userAlreadyExists(login: string) {
+  const userTryingLogin = await getUser(login)
+
+  if (userTryingLogin) return true
+
+  return false
+}
 
 /**
  * @throws {object} Errors object
@@ -23,32 +75,15 @@ export function checkLoginAndPasswordCorrectFormat(
     }
 }
 
-/**
- * @throws {object} Errors object
- */
-export async function getLoggedInUser(
-  login: null | undefined | string,
-  password: null | undefined | string
-): Promise<void> {
-  const errors: {login: any[], password: any[], userNotFound: null | string} = {login: [], password: [], userNotFound: null}
-  // Check if login and password are filled
-  if (!login) errors.login.push('Логин должен быть заполнен')
-  if (!password) errors.password.push('Пароль должен быть заполнен')
-
-  // Check if user with such login and password exists
-  const loggedInUser = await getUser(login as string, password as string)
-  if (!loggedInUser) {
-    errors.userNotFound = 'Извините, но пользователя с таким логином и/или паролем не существует'
+export async function hashPassword(plainPassword: string) {
+  let hash
+  try {
+    hash = await argon2.hash(plainPassword)
+  } catch (err) {
+    throw new AppError(err, GENERIC_SERVER_ERROR_USER_MESSAGE, ARGON2_ERROR_MESSAGE)
   }
 
-  // If there are errors - throw them
-  if (errors.login.length > 0 || errors.password.length > 0 || errors.userNotFound) {
-    console.error({login, password, errors})
-    throw errors
-  }
-
-  // Else we return the loggedInUser :)
-  return loggedInUser
+  return hash
 }
 
 function isPasswordStrong(password: string): boolean {
