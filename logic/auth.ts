@@ -2,7 +2,7 @@ import * as argon2 from 'argon2'
 import { Request } from 'express'
 import { AppError } from './appAndHttp'
 import { ARGON2_ERROR_MESSAGE, GENERIC_SERVER_ERROR_USER_MESSAGE } from './constants'
-import { getUser } from './db'
+import { getDbAndClient, getUser } from './db'
 import { createSessionToken } from './sessionToken'
 import { deviceDetector } from '../app'
 import { getSixtyDaysFromToday } from './date'
@@ -10,7 +10,7 @@ import { getSixtyDaysFromToday } from './date'
 /**
  * @throws {object} Errors object
  */
-export async function getLoggedInUser(
+export async function getLoggedInUserAndSession(
   login: null | undefined | string,
   password: null | undefined | string,
   req: Request
@@ -44,7 +44,7 @@ export async function getLoggedInUser(
   if (errors.password.length > 0) throw errors
 
   // All good, user does exist! Now create new session token for them and return user with their session token
-  const { db, client } = getDb()
+  const { db, client } = getDbAndClient()
   const sessionTokens = db.collection('sessionTokens')
   const newSessionToken = {
     value: createSessionToken(),
@@ -64,7 +64,7 @@ export async function getLoggedInUser(
   console.log(`A new session token was inserted with the _id: ${insertResultNewSessionToken.insertedId}`)
 
   const loggedInUser = userTryingLogin
-  return {user: loggedInUser, sessionToken: newSessionToken}
+  return {loggedInUser, sessionToken: newSessionToken}
 }
 
 export async function userAlreadyExists(login: string) {
@@ -112,9 +112,4 @@ export async function hashPassword(plainPassword: string) {
 function isPasswordStrong(password: string): boolean {
   const regexp = /^(?=.*\d)(?=.*[+!@#$%^&*_-])(?=.*[a-z])(?=.*[A-Z]).{8,}$/
   return regexp.test(password)
-}
-
-// TODO: wtf? ))))))))))))))))))))))))))))
-function getDb(): { db: any; client: any } {
-  throw new Error('Function not implemented.')
 }

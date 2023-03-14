@@ -2,8 +2,8 @@ const express = require('express')
 const router = express.Router()
 import { NextFunction as Next, Request, Response } from 'express'
 import { HTTP_BAD_CREDENTIALS, HTTP_BAD_REQUEST, HTTP_SERVER_ERROR } from '../logic/constants'
-import { createUser } from '../logic/db'
-import { checkLoginAndPasswordCorrectFormat, userAlreadyExists, getLoggedInUser } from '../logic/auth'
+import { createUserAndToken } from '../logic/db'
+import { checkLoginAndPasswordCorrectFormat, userAlreadyExists, getLoggedInUserAndSession } from '../logic/auth'
 import { AppError, sendResponse } from '../logic/appAndHttp'
 
 router.post('/register', async function(req: Request, res: Response, next: Next) {
@@ -26,7 +26,7 @@ router.post('/register', async function(req: Request, res: Response, next: Next)
   // All good! Create user in database
   let newUser
   try {
-    newUser = await createUser(login, password, req)
+    newUser = await createUserAndToken(login, password, req)
   } catch (err) {
     console.error(err)
     res.status(HTTP_SERVER_ERROR)
@@ -38,12 +38,12 @@ router.post('/register', async function(req: Request, res: Response, next: Next)
   }
 
   // Send response with session token
-  res.cookie('s', newUser.sessionToken)
+  res.cookie('s', newUser.sessionToken, {maxAge: 1000 * 60 * 60 * 24 * 60, httpOnly: true}) // 60 days cookie time
   return sendResponse(res, {
     status: 'ok',
     userMessage: 'Регистрация прошла успешно ✔',
     message: 'Регистрация успешна',
-    user: {login: newUser.user.login, _id: newUser.user._id},
+    login: newUser.user.login,
   })
 })
 
@@ -53,26 +53,22 @@ router.post('/login', async function(req: Request, res: Response, next: Next) {
   const password = req.body.password
   let loggedInUser
   let sessionToken
-  // TODO: ... down
   try {
-    let resTODO_REMOVE = await getLoggedInUser(login, password, req)
-    loggedInUser = resTODO_REMOVE.user
-    sessionToken = resTODO_REMOVE.sessionToken
-    console.log('loggedInUser', loggedInUser)
-    console.log('sessionToken', sessionToken)
+    ({ loggedInUser, sessionToken } = await getLoggedInUserAndSession(login, password, req))
   } catch (errors) {
+    console.error(errors)
     res.status(HTTP_BAD_CREDENTIALS)
     return sendResponse(res, {status: 'error', userMessage: {errors}})
   }
 
   // Login user, i.e. send response with user and their session token
   // 2. Send them the response with the token and user details to further use it in frontend
-  res.cookie('s', sessionToken)
+  res.cookie('s', sessionToken.value, {maxAge: 1000 * 60 * 60 * 24 * 60, httpOnly: true}) // 60 days cookie time)
   return sendResponse(res, {
     status: 'ok',
     userMessage: 'Вы успешно залогинены ✔',
     message: 'Логин успешен',
-    user: loggedInUser,
+    login: loggedInUser.login,
   })
 })
 

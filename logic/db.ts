@@ -12,9 +12,9 @@ interface User {
   _id: null | string
 }
 
-export async function createUser(login: string, password: string, req: Request) {
+export async function createUserAndToken(login: string, password: string, req: Request) {
   // Create new user and new session token in db
-  const { db, client } = getDb()
+  const { db, client } = getDbAndClient()
   const users = db.collection('users')
   const sessionTokens = db.collection('sessionTokens')
 
@@ -52,7 +52,7 @@ export async function createUser(login: string, password: string, req: Request) 
 }
 
 export async function getUser(login: string) {
-  const { db, client } = getDb()
+  const { db, client } = getDbAndClient()
   const users = db.collection('users')
 
   let user
@@ -65,7 +65,7 @@ export async function getUser(login: string) {
   return user
 }
 
-function getDb() {
+export function getDbAndClient() {
   const uri = 'mongodb://127.0.0.1:27017'
   const client = new MongoClient(uri, {connectTimeoutMS: 1000, serverSelectionTimeoutMS: 1000, socketTimeoutMS: 1000}) // TODO: ofc change to different timeout when prod or just omit it
   const db = client.db('sntm')
