@@ -48,7 +48,7 @@ export async function createUser(login: string, password: string, req: Request) 
 
   newUser._id = String(insertResultNewUser.insertedId)
 
-  return {user: newUser, newSessionToken: newSessionToken.value}
+  return {user: newUser, sessionToken: newSessionToken.value}
 }
 
 export async function getUser(login: string) {

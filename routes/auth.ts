@@ -38,7 +38,7 @@ router.post('/register', async function(req: Request, res: Response, next: Next)
   }
 
   // Send response with session token
-  res.cookie('sessionToken', 'zxczxcxzzxcc')
+  res.cookie('s', newUser.sessionToken)
   return sendResponse(res, {
     status: 'ok',
     userMessage: 'Регистрация прошла успешно ✔',
@@ -52,16 +52,22 @@ router.post('/login', async function(req: Request, res: Response, next: Next) {
   const login = req.body.login?.trim()
   const password = req.body.password
   let loggedInUser
+  let sessionToken
+  // TODO: ... down
   try {
-    loggedInUser = await getLoggedInUser(login, password)
+    let resTODO_REMOVE = await getLoggedInUser(login, password, req)
+    loggedInUser = resTODO_REMOVE.user
+    sessionToken = resTODO_REMOVE.sessionToken
+    console.log('loggedInUser', loggedInUser)
+    console.log('sessionToken', sessionToken)
   } catch (errors) {
     res.status(HTTP_BAD_CREDENTIALS)
     return sendResponse(res, {status: 'error', userMessage: {errors}})
   }
 
-  // Login user, i.e. send response with session token
+  // Login user, i.e. send response with user and their session token
   // 2. Send them the response with the token and user details to further use it in frontend
-  res.cookie('sessionToken', 'foooofofofofofof')
+  res.cookie('s', sessionToken)
   return sendResponse(res, {
     status: 'ok',
     userMessage: 'Вы успешно залогинены ✔',

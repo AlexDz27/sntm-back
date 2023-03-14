@@ -1,15 +1,20 @@
 import * as argon2 from 'argon2'
+import { Request } from 'express'
 import { AppError } from './appAndHttp'
 import { ARGON2_ERROR_MESSAGE, GENERIC_SERVER_ERROR_USER_MESSAGE } from './constants'
 import { getUser } from './db'
+import { createSessionToken } from './sessionToken'
+import { deviceDetector } from '../app'
+import { getSixtyDaysFromToday } from './date'
 
 /**
  * @throws {object} Errors object
  */
 export async function getLoggedInUser(
   login: null | undefined | string,
-  password: null | undefined | string
-): Promise<void> {
+  password: null | undefined | string,
+  req: Request
+) {
   const errors: {login: any[], password: any[], userNotFound: null | string} = {login: [], password: [], userNotFound: null}
   // Check if login and password are filled
   if (!login) errors.login.push('Логин должен быть заполнен')
@@ -38,10 +43,28 @@ export async function getLoggedInUser(
   }
   if (errors.password.length > 0) throw errors
 
-  // Else we return the loggedInUser :)
-  const loggedInUser = userTryingLogin
+  // All good, user does exist! Now create new session token for them and return user with their session token
+  const { db, client } = getDb()
+  const sessionTokens = db.collection('sessionTokens')
+  const newSessionToken = {
+    value: createSessionToken(),
+    userId: userTryingLogin._id,
+    ipAddress: req.socket.remoteAddress,
+    device: deviceDetector.detect(req.get('User-Agent') as string),
+    createdAt: String(new Date()),
+    expiresAt: String(getSixtyDaysFromToday())
+  }
 
-  return loggedInUser
+  let insertResultNewSessionToken
+  try {
+    insertResultNewSessionToken = await sessionTokens.insertOne(newSessionToken)
+  } finally {
+    await client.close()
+  }
+  console.log(`A new session token was inserted with the _id: ${insertResultNewSessionToken.insertedId}`)
+
+  const loggedInUser = userTryingLogin
+  return {user: loggedInUser, sessionToken: newSessionToken}
 }
 
 export async function userAlreadyExists(login: string) {
@@ -89,4 +112,9 @@ export async function hashPassword(plainPassword: string) {
 function isPasswordStrong(password: string): boolean {
   const regexp = /^(?=.*\d)(?=.*[+!@#$%^&*_-])(?=.*[a-z])(?=.*[A-Z]).{8,}$/
   return regexp.test(password)
+}
+
+// TODO: wtf? ))))))))))))))))))))))))))))
+function getDb(): { db: any; client: any } {
+  throw new Error('Function not implemented.')
 }
