@@ -29,8 +29,8 @@ export async function createUserAndToken(login: string, password: string, req: R
     userId: null,
     ipAddress: req.socket.remoteAddress,
     device: deviceDetector.detect(req.get('User-Agent') as string),
-    createdAt: String(new Date()),
-    expiresAt: String(getSixtyDaysFromToday())
+    createdAt: new Date(),
+    expiresAt: getSixtyDaysFromToday()
   }
 
   let insertResultNewUser
@@ -51,13 +51,30 @@ export async function createUserAndToken(login: string, password: string, req: R
   return {user: newUser, sessionToken: newSessionToken.value}
 }
 
-export async function getUser(login: string) {
+export async function getUserByLogin(login: string) {
   const { db, client } = getDbAndClient()
   const users = db.collection('users')
 
   let user
   try {
     user = await users.findOne({login})
+  } finally {
+    await client.close();
+  }
+
+  return user
+}
+
+export async function getUserByToken(token: string) {
+  const { db, client } = getDbAndClient()
+  const sessionTokens = db.collection('sessionTokens')
+  const users = db.collection('users')
+
+  let sessionTokenRecord
+  let user
+  try {
+    sessionTokenRecord = await sessionTokens.findOne({value: token})
+    user = await users.findOne({_id: sessionTokenRecord?.userId})
   } finally {
     await client.close();
   }

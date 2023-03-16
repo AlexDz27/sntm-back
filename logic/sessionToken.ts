@@ -1,18 +1,11 @@
 import { v4 as uuidv4 } from 'uuid'
 import { createHmac } from 'node:crypto'
-const SECRET = '6G7Mbux!P0__483h!nhsdfbghuDg23mHi'
 
 export function createSessionToken() {
   const uuid = uuidv4()
-  const hash = createHmac('sha256', SECRET).update(uuid).digest('hex')
+  // Also hash GUID to prevent crafting a session token by attacker
+  const hash = createHmac('sha256', process.env.SESSION_TOKEN_HASH_SECRET!).update(uuid).digest('hex')
 
-  return hash
+  const sessionToken = hash
+  return sessionToken
 }
-
-/**
- * Hash session token to prevent crafting a session token by attacker
- */
-function hashSessionToken(sessionToken: string) {
-  
-}
-

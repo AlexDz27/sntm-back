@@ -2,7 +2,7 @@ import * as argon2 from 'argon2'
 import { Request } from 'express'
 import { AppError } from './appAndHttp'
 import { ARGON2_ERROR_MESSAGE, GENERIC_SERVER_ERROR_USER_MESSAGE } from './constants'
-import { getDbAndClient, getUser } from './db'
+import { getDbAndClient, getUserByLogin } from './db'
 import { createSessionToken } from './sessionToken'
 import { deviceDetector } from '../app'
 import { getSixtyDaysFromToday } from './date'
@@ -28,7 +28,7 @@ export async function getLoggedInUserAndSession(
 
   // Verify password
   // // Get user by login. If not found, send error 'no user with such login/password'
-  const userTryingLogin = await getUser(login)
+  const userTryingLogin = await getUserByLogin(login)
   if (!userTryingLogin) {
     errors.userNotFound = 'Извините, но пользователя с таким логином и/или паролем не существует'
     throw errors
@@ -68,7 +68,7 @@ export async function getLoggedInUserAndSession(
 }
 
 export async function userAlreadyExists(login: string) {
-  const userTryingLogin = await getUser(login)
+  const userTryingLogin = await getUserByLogin(login)
 
   if (userTryingLogin) return true
 

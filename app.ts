@@ -8,6 +8,7 @@ import DeviceDetector from 'node-device-detector'
 
 const indexRouter = require('./routes/index')
 const authRouter = require('./routes/auth')
+const commentsRouter = require('./routes/comments')
 
 const app = express()
 
@@ -25,6 +26,7 @@ app.use((req: Request, res: Response, next: Next) => {
 
 app.use('/', indexRouter)
 app.use('/', authRouter)
+app.use('/', commentsRouter)
 
 export const deviceDetector = new DeviceDetector({
   clientIndexes: true,
