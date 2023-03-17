@@ -1,6 +1,8 @@
 import { Request } from 'express'
 import { deviceDetector } from '../app'
+import { AppError } from './appAndHttp'
 import { hashPassword } from './auth'
+import { DATABASE_CONNECTION_ERROR_USER_MESSAGE } from './constants'
 import { getSixtyDaysFromToday } from './date'
 import { createSessionToken } from './sessionToken'
 
@@ -33,36 +35,37 @@ export async function createUserAndToken(login: string, password: string, req: R
     expiresAt: getSixtyDaysFromToday()
   }
 
-  let insertResultNewUser
-  let insertResultNewSessionToken
   try {
-    insertResultNewUser = await users.insertOne(newUser)
+    const insertResultNewUser = await users.insertOne(newUser)
 
     newSessionToken.userId = insertResultNewUser.insertedId
-    insertResultNewSessionToken = await sessionTokens.insertOne(newSessionToken)
+    const insertResultNewSessionToken = await sessionTokens.insertOne(newSessionToken)
+
+    console.log(`A new user was inserted with the _id: ${insertResultNewUser.insertedId}`)
+    console.log(`A new session token was inserted with the _id: ${insertResultNewSessionToken.insertedId}`)
+
+    newUser._id = String(insertResultNewUser.insertedId)
+
+    return {user: newUser, sessionToken: newSessionToken.value}
+  } catch (err) {
+    throw new AppError(err, DATABASE_CONNECTION_ERROR_USER_MESSAGE)
   } finally {
     await client.close()
   }
-  console.log(`A new user was inserted with the _id: ${insertResultNewUser.insertedId}`)
-  console.log(`A new session token was inserted with the _id: ${insertResultNewSessionToken.insertedId}`)
-
-  newUser._id = String(insertResultNewUser.insertedId)
-
-  return {user: newUser, sessionToken: newSessionToken.value}
 }
 
 export async function getUserByLogin(login: string) {
   const { db, client } = getDbAndClient()
   const users = db.collection('users')
 
-  let user
   try {
-    user = await users.findOne({login})
+    const user = await users.findOne({login})
+    return user
+  } catch (err) {
+    throw new AppError(err, DATABASE_CONNECTION_ERROR_USER_MESSAGE, 'qwe Message')
   } finally {
     await client.close();
   }
-
-  return user
 }
 
 export async function getUserByToken(token: string) {
@@ -70,16 +73,13 @@ export async function getUserByToken(token: string) {
   const sessionTokens = db.collection('sessionTokens')
   const users = db.collection('users')
 
-  let sessionTokenRecord
-  let user
   try {
-    sessionTokenRecord = await sessionTokens.findOne({value: token})
-    user = await users.findOne({_id: sessionTokenRecord?.userId})
+    const sessionTokenRecord = await sessionTokens.findOne({value: token})
+    const user = await users.findOne({_id: sessionTokenRecord?.userId})
+    return user
   } finally {
     await client.close();
   }
-
-  return user
 }
 
 export function getDbAndClient() {

@@ -18,23 +18,25 @@ router.post('/register', async function(req: Request, res: Response, next: Next)
   }
 
   // Check if user already exists
-  if (await userAlreadyExists(login)) {
-    res.status(HTTP_BAD_CREDENTIALS)
-    return sendResponse(res, {status: 'error', userMessage: `Извините, но пользователь с логином ${login} уже существует. Попробуйте использовать другой логин.`})
+  try {
+    if (await userAlreadyExists(login)) {
+      res.status(HTTP_BAD_CREDENTIALS)
+      return sendResponse(res, {status: 'error', userMessage: `Извините, но пользователь с логином ${login} уже существует. Попробуйте использовать другой логин.`})
+    }
+  } catch (error) {
+    console.error(error)
+    const err = error as AppError
+    return sendResponse(res, {status: 'error', userMessage: err.userMessage, message: err.message})
   }
 
   // All good! Create user in database
   let newUser
   try {
     newUser = await createUserAndToken(login, password, req)
-  } catch (err) {
-    console.error(err)
-    res.status(HTTP_SERVER_ERROR)
-    if (err instanceof AppError) {
-      return sendResponse(res, {status: 'error', userMessage: err.userMessage, message: err.message})      
-    }
-
-    return sendResponse(res, {status: 'error', userMessage: 'Извините, мы не смогли подключиться к нашей базе данных', message: err})
+  } catch (error) {
+    console.error(error)
+    const err = error as AppError
+    return sendResponse(res, {status: 'error', userMessage: err.userMessage, message: err.message})
   }
 
   // Send response with session token
@@ -63,7 +65,7 @@ router.post('/login', async function(req: Request, res: Response, next: Next) {
 
   // Login user, i.e. send response with user and their session token
   // 2. Send them the response with the token and user details to further use it in frontend
-  res.cookie('s', sessionToken.value, {maxAge: 1000 * 60 * 60 * 24 * 60, httpOnly: true}) // 60 days cookie time)
+  res.cookie('s', sessionToken.value, {maxAge: 1000 * 60 * 60 * 24 * 60, httpOnly: true}) // 60 days cookie time
   return sendResponse(res, {
     status: 'ok',
     userMessage: 'Вы успешно залогинены ✔',

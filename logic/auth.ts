@@ -71,7 +71,6 @@ export async function userAlreadyExists(login: string) {
   const userTryingLogin = await getUserByLogin(login)
 
   if (userTryingLogin) return true
-
   return false
 }
 

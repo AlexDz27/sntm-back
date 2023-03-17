@@ -1,6 +1,6 @@
 import { getDbAndClient } from './logic/db'
 
-console.log('deleteStaleTokensScript in running...')
+console.log('deleteStaleTokensScript is running...')
 
 const current = new Date()
 let lastMinutes = current.getMinutes()
@@ -30,4 +30,4 @@ setInterval(async () => {
     lastMinutes = currentMinutes
     console.log('Ran session tokens deletion command! Now lastMinutes is ' + lastMinutes)
   }
-}, 3600000)
+}, 3600000) // every 1 hour
