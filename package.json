@@ -6,7 +6,7 @@
     "start": "ts-node-dev ./bin/www",
     "dev": "SET DEBUG=sntm-back:* & npm run start",
     "build": "npx tsc",
-    "prod": "node ./build/bin/www"
+    "prod": "node ./build/bin/www | node ./build/deleteStaleTokensScript.js"
   },
   "dependencies": {
     "argon2": "^0.30.3",

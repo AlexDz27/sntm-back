@@ -1,5 +1,7 @@
 import { getDbAndClient } from './logic/db'
 
+console.log('deleteStaleTokensScript in running...')
+
 const current = new Date()
 let lastMinutes = current.getMinutes()
 
@@ -12,25 +14,20 @@ setInterval(async () => {
     const sessionTokens = db.collection('sessionTokens')
 
     let deleteManyResult
-    // currentDate > expiresAt -- засунуть это в фильтр
     try {
-      deleteManyResult = await sessionTokens.deleteMany({expiresAt: {$lt: current}}) // TODO: proper with dates
+      deleteManyResult = await sessionTokens.deleteMany({expiresAt: {$lt: current}})
+    } catch (err) {
+      console.log('WARNING: ERROR IN DELETING SESSION TOKENS SCRIPT')
+      console.error(err)
+
+      await client.close()
+      return
     } finally {
       await client.close()
     }
     console.log('Deleted ' + deleteManyResult.deletedCount + ' session tokens')
 
     lastMinutes = currentMinutes
-    console.log('ran command! Now lastMinutes is ' + lastMinutes)
+    console.log('Ran session tokens deletion command! Now lastMinutes is ' + lastMinutes)
   }
-}, 3000) // run this code every hour (3600000) TODO: change to brackets
-
-/*
-TODO:
-1. actually do delete, test
-2. change to day
-
-errors? how to handle?
-
-// could be problems with await inside setInterval?
-*/
+}, 3600000)
