@@ -26,6 +26,7 @@ router.post('/register', async function(req: Request, res: Response, next: Next)
   } catch (error) {
     console.error(error)
     const err = error as AppError
+    res.status(HTTP_SERVER_ERROR)
     return sendResponse(res, {status: 'error', userMessage: err.userMessage, message: err.message})
   }
 
@@ -36,10 +37,12 @@ router.post('/register', async function(req: Request, res: Response, next: Next)
   } catch (error) {
     console.error(error)
     const err = error as AppError
+    res.status(HTTP_SERVER_ERROR)
     return sendResponse(res, {status: 'error', userMessage: err.userMessage, message: err.message})
   }
 
   // Send response with session token
+  // if (process.env.APP_ENVIRONMENT === 'prod') ставить Secure и прочие секьюрности
   res.cookie('s', newUser.sessionToken, {maxAge: 1000 * 60 * 60 * 24 * 60, httpOnly: true}) // 60 days cookie time
   return sendResponse(res, {
     status: 'ok',

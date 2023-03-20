@@ -1,3 +1,5 @@
+import { APP_ENVIRONMENT } from '../env'
+
 interface HttpResponse {
   send: Function
 }
@@ -21,7 +23,7 @@ export class AppError {
     this.message = message
     this.other = other
 
-    if (process.env.APP_ENVIRONMENT === 'prod') {
+    if (APP_ENVIRONMENT === 'prod') {
       delete this.error
       delete this.message
       delete this.other
@@ -30,9 +32,10 @@ export class AppError {
 }
 
 export function sendResponse(httpResponse: HttpResponse, appResponse: AppResponse) {
-  if (process.env.APP_ENVIRONMENT === 'prod') {
+  if (APP_ENVIRONMENT === 'prod') {
     delete appResponse.message
   }
 
   httpResponse.send(appResponse)
 }
+
