@@ -15,7 +15,7 @@ export async function getLoggedInUserAndSession(
   password: null | undefined | string,
   req: Request
 ) {
-  const errors: {login: any[], password: any[], userNotFound: null | string} = {login: [], password: [], userNotFound: null}
+  const errors: {login: any[], password: any[]} = {login: [], password: []}
   // Check if login and password are filled
   if (!login) errors.login.push('Логин должен быть заполнен')
   if (!password) errors.password.push('Пароль должен быть заполнен')
@@ -30,7 +30,7 @@ export async function getLoggedInUserAndSession(
   // // Get user by login. If not found, send error 'no user with such login/password'
   const userTryingLogin = await getUserByLogin(login)
   if (!userTryingLogin) {
-    errors.userNotFound = 'Извините, но пользователя с таким логином и/или паролем не существует'
+    errors.password.push('Извините, но пользователя с таким логином и/или паролем не существует')
     throw errors
   }
   // // Actually verify hashed password. If no match, send error 'no user with such login/password'
@@ -74,27 +74,32 @@ export async function userAlreadyExists(login: string) {
   return false
 }
 
-/**
- * @throws {object} Errors object
- */
-export function checkLoginAndPasswordCorrectFormat(
+export function areLoginAndPasswordCorrectFormat(
   login: null | undefined | string,
   password: null | undefined | string
-  ): void {
-    const errors: {login: any[], password: any[]} = {login: [], password: []}
-    if (!login) errors.login.push('Логин должен быть заполнен')
-    if (!password) errors.password.push('Пароль должен быть заполнен')
-    if (typeof login === 'string' && login?.length < 2) {
-      errors.login.push('Логин должен быть больше двух символов')
-    }
-    if (password && !isPasswordStrong(password)) {
-      errors.password.push('Пароль должен содержать минимум 8 букв, хотя бы одну большую букву, хотя бы один из символов (+!@#$%^&*_-) и хотя бы одну цифру')
-    }
+): boolean {
+  if (!login) return false
+  if (!password) return false
+  if (typeof login === 'string' && login?.length < 2) return false
+  if (password && !isPasswordStrong(password)) return false
 
-    if (errors.login.length > 0 || errors.password.length > 0) {
-      console.error({login, password, errors})
-      throw errors
-    }
+  return true
+}
+export function getLoginAndPasswordFormatErrors(
+  login: null | undefined | string,
+  password: null | undefined | string
+): {login: any[], password: any[]} {
+  const errors: {login: any[], password: any[]} = {login: [], password: []}
+  if (!login) errors.login.push('Логин должен быть заполнен')
+  if (!password) errors.password.push('Пароль должен быть заполнен')
+  if (typeof login === 'string' && login?.length < 2) {
+    errors.login.push('Логин должен быть больше двух символов')
+  }
+  if (password && !isPasswordStrong(password)) {
+    errors.password.push('Пароль должен содержать минимум 8 букв, хотя бы одну большую букву, хотя бы один из символов (+!@#$%^&*_-) и хотя бы одну цифру')
+  }
+
+  return errors
 }
 
 export async function hashPassword(plainPassword: string) {

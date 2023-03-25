@@ -1,11 +1,10 @@
+import { Request, Response } from 'express'
 import { APP_ENVIRONMENT } from '../env'
+import { HTTP_BAD_REQUEST } from './constants'
 
-interface HttpResponse {
-  send: Function
-}
 interface AppResponse {
   status: 'ok' | 'error'
-  userMessage: object | string
+  userMessage?: object | string
   message?: any
   user?: any
   [propertyName: string]: any
@@ -31,11 +30,23 @@ export class AppError {
   }
 }
 
-export function sendResponse(httpResponse: HttpResponse, appResponse: AppResponse) {
+
+export function sendResponse(httpResponse: Response, httpCode: number, appResponse: AppResponse) {
   if (APP_ENVIRONMENT === 'prod') {
     delete appResponse.message
   }
 
+  httpResponse.status(httpCode)
   httpResponse.send(appResponse)
 }
 
+export function disallowNonGetNonApplicationJsonRequests(req: Request, res: Response) {
+  if (req.method !== 'GET') {
+    if (!req.is('application/json')) {
+      return sendResponse(res, HTTP_BAD_REQUEST, {
+        status: 'error',
+        userMessage: 'Dont try to hack us pls'
+      })
+    }
+  }
+}
