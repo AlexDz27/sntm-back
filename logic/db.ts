@@ -2,7 +2,7 @@ import { Request } from 'express'
 import { deviceDetector } from '../app'
 import { AppError } from './appAndHttp'
 import { hashPassword } from './auth'
-import { DATABASE_CONNECTION_ERROR_USER_MESSAGE } from './constants'
+import { DATABASE_CONNECTION_ERROR_USER_MESSAGE } from '../constants'
 import { getSixtyDaysFromToday } from './date'
 import { createSessionToken } from './sessionToken'
 const { MongoClient } = require('mongodb')

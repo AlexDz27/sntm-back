@@ -1,7 +1,7 @@
 import * as argon2 from 'argon2'
 import { Request } from 'express'
 import { AppError } from './appAndHttp'
-import { ARGON2_ERROR_MESSAGE, GENERIC_SERVER_ERROR_USER_MESSAGE } from './constants'
+import { ARGON2_ERROR_MESSAGE, GENERIC_SERVER_ERROR_USER_MESSAGE } from '../constants'
 import { getDbAndClient, getUserByLogin } from './db'
 import { createSessionToken } from './sessionToken'
 import { deviceDetector } from '../app'

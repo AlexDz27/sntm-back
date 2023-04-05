@@ -1,6 +1,6 @@
 import { Request, Response } from 'express'
 import { APP_ENVIRONMENT } from '../env'
-import { HTTP_BAD_REQUEST } from './constants'
+import { HTTP_BAD_REQUEST } from '../constants'
 
 interface AppResponse {
   status: 'ok' | 'error'
@@ -41,6 +41,9 @@ export function sendResponse(httpResponse: Response, httpCode: number, appRespon
 }
 
 export function disallowNonGetNonApplicationJsonRequests(req: Request, res: Response) {
+  // do nothing if it's a simple preflight request from frontend
+  if (req.method === 'OPTIONS') return
+  
   if (req.method !== 'GET') {
     if (!req.is('application/json')) {
       return sendResponse(res, HTTP_BAD_REQUEST, {

@@ -41,4 +41,7 @@ export const deviceDetector = new DeviceDetector({
   deviceIndexes: true,
   deviceAliasCode: false,
 });
+
+console.log('got to here...')
+
 module.exports = app

@@ -2,7 +2,7 @@ const express = require('express')
 const router = express.Router()
 import { Request, Response } from 'express'
 import { AppError, sendResponse } from '../logic/appAndHttp'
-import { HTTP_BAD_CREDENTIALS, HTTP_OK, HTTP_SERVER_ERROR } from '../logic/constants'
+import { HTTP_BAD_CREDENTIALS, HTTP_OK, HTTP_SERVER_ERROR } from '../constants'
 import { createComment, doesSessionTokenExist, getUserBySessionToken } from '../logic/db'
 
 router.get('/comments/check-if-allowed-to-comment-as-original-user', async function(req: Request, res: Response) {

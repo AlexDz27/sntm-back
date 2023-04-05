@@ -1,7 +1,7 @@
 const express = require('express')
 const router = express.Router()
 import { Request, Response } from 'express'
-import { HTTP_BAD_CREDENTIALS, HTTP_BAD_REQUEST, HTTP_SERVER_ERROR, HTTP_OK } from '../logic/constants'
+import { HTTP_BAD_CREDENTIALS, HTTP_BAD_REQUEST, HTTP_SERVER_ERROR, HTTP_OK } from '../constants'
 import { createUserAndSessionToken } from '../logic/db'
 import { areLoginAndPasswordCorrectFormat, getLoginAndPasswordFormatErrors, userAlreadyExists, getLoggedInUserAndSession } from '../logic/auth'
 import { AppError, sendResponse } from '../logic/appAndHttp'
