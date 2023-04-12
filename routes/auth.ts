@@ -54,13 +54,20 @@ router.post('/register', async function(req: Request, res: Response) {
   if (APP_ENVIRONMENT === 'prod') {
     // TODO: check how it works in prod
     res.cookie('s', newUser.sessionToken, {
-      maxAge: 1000 * 60 * 60 * 24 * 60,
+      maxAge: 1000 * 60 * 60 * 24 * 60, // 60 days cookie time
       httpOnly: true,
       secure: true,
       sameSite: 'strict'
-    }) // 60 days cookie time
+    })
+    res.cookie('login', newUser.user.login, {
+      maxAge: 1000 * 60 * 60 * 24 * 60, // 60 days cookie time
+      httpOnly: false,
+      secure: true,
+      sameSite: 'strict'
+    })
   } else {
     res.cookie('s', newUser.sessionToken, {maxAge: 1000 * 60 * 60 * 24 * 60, httpOnly: true}) // 60 days cookie time
+    res.cookie('login', newUser.user.login, {maxAge: 1000 * 60 * 60 * 24 * 60, httpOnly: false}) // 60 days cookie time
   }
   return sendResponse(res, HTTP_OK, {
     status: 'ok',
@@ -89,13 +96,20 @@ router.post('/login', async function(req: Request, res: Response) {
   if (APP_ENVIRONMENT === 'prod') {
     // TODO: check how it works in prod
     res.cookie('s', sessionToken.value, {
-      maxAge: 1000 * 60 * 60 * 24 * 60,
+      maxAge: 1000 * 60 * 60 * 24 * 60, // 60 days cookie time
       httpOnly: true,
       secure: true,
       sameSite: 'strict'
-    }) // 60 days cookie time
+    })
+    res.cookie('login', loggedInUser.login, {
+      maxAge: 1000 * 60 * 60 * 24 * 60, // 60 days cookie time
+      httpOnly: false,
+      secure: true,
+      sameSite: 'strict'
+    })
   } else {
     res.cookie('s', sessionToken.value, {maxAge: 1000 * 60 * 60 * 24 * 60, httpOnly: true}) // 60 days cookie time
+    res.cookie('login', loggedInUser.login, {maxAge: 1000 * 60 * 60 * 24 * 60, httpOnly: false}) // 60 days cookie time
   }
   return sendResponse(res, HTTP_OK, {
     status: 'ok',
