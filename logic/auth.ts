@@ -96,7 +96,7 @@ export function getLoginAndPasswordFormatErrors(
     errors.login.push('Логин должен быть больше двух символов')
   }
   if (password && !isPasswordStrong(password)) {
-    errors.password.push('Пароль должен содержать минимум 8 букв, хотя бы одну большую букву, хотя бы один из символов (+!@#$%^&*_-) и хотя бы одну цифру')
+    errors.password.push('Пароль должен содержать минимум 8 английских букв, хотя бы одну большую букву, хотя бы один из символов (+!@#$%^&*_-) и хотя бы одну цифру')
   }
 
   return errors

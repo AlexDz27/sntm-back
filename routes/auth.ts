@@ -119,5 +119,16 @@ router.post('/login', async function(req: Request, res: Response) {
   })
 })
 
+router.get('/logout', async function(req: Request, res: Response) {
+  res.clearCookie('s')
+  res.clearCookie('login')
+
+  return sendResponse(res, HTTP_OK, {
+    status: 'ok',
+    userMessage: 'Вы были успешно разлогинены ✔',
+    message: 'Логаут успешен',
+  })
+})
+
 module.exports = router
 export {}
